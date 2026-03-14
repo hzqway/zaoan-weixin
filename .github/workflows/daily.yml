@@ -1,0 +1,38 @@
+name: 每日早安问候
+
+on:
+  schedule:
+    # 每天早上 8:30 北京时间
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Run send script
+        env:
+          WECHAT_APPID: ${{ secrets.WECHAT_APPID }}
+          WECHAT_SECRET: ${{ secrets.WECHAT_SECRET }}
+          TEMPLATE_ID: ${{ secrets.TEMPLATE_ID }}
+          USER_OPENID: ${{ secrets.USER_OPENID }}
+        run: |
+          # 更新脚本中的配置
+          sed -i "s/^WECHAT_APPID = \".*\"/WECHAT_APPID = \"$WECHAT_APPID\"/" send_weixin.py
+          sed -i "s/^WECHAT_SECRET = \".*\"/WECHAT_SECRET = \"$WECHAT_SECRET\"/" send_weixin.py
+          sed -i "s/^TEMPLATE_ID = \".*\"/TEMPLATE_ID = \"$TEMPLATE_ID\"/" send_weixin.py
+          sed -i "s/^USER_OPENID = \".*\"/USER_OPENID = \"$USER_OPENID\"/" send_weixin.py
+          
+          python send_weixin.py
